@@ -9,6 +9,7 @@ from couchpotato.core.media.movie.providers.base import MovieProvider
 import re
 import time
 from urllib import unquote
+from datetime import datetime
 
 log = CPLog(__name__)
 
@@ -89,6 +90,10 @@ class BigTower(TorrentProvider, MovieProvider):
                     torrent_size = self.parseSize(all_cells[9].getText()) if all_cells[9].getText() != "" else self.parseSize(all_cells[8].getText())
                     torrent_url = self.urls['baseurl'] % 'download.php?id=%s' % torrent_id
                     torrent_detail_url = self.urls['details'] % torrent_id
+                    # extract the age converting the AddDate, format: 13/05/2017
+                    torrent_pubdate = all_cells[4].getText() if all_cells[9].getText() != "" else all_cells[3].getText()
+                    torrent_pubdate = datetime.strptime(torrent_pubdate, '%d/%m/%Y')
+                    torrent_age = (datetime.now() - torrent_pubdate).days
 
                     result = {
                         'id': torrent_id,
@@ -98,7 +103,8 @@ class BigTower(TorrentProvider, MovieProvider):
                         'leechers': torrent_leechers,
                         'url': torrent_url,
                         'detail_url': torrent_detail_url,
-                        'score': torrent_score
+                        'score': torrent_score,
+			'age': torrent_age
                     }
 
                     log.debug("New result %s", result)
